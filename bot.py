@@ -1,53 +1,79 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
+# 🔴 حط التوكن هنا
 TOKEN = "8655578936:AAH2AW08yMXJnDZU4Bgi-QAxt7o02J7pvpU"
-ADMIN_CHAT_ID = "5546714606"
 
-user_type = {}
+# ===== الأزرار الرئيسية =====
+keyboard = [
+    ["📸 لجنة التصوير والتوثيق"],
+    ["🎨 لجنة التصميم"],
+    ["📢 اللجنة الإلكترونية"]
+]
 
+reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+# ===== /start =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["📸 التصوير"], ["🎨 التصميم"], ["💻 الإلكترونية"]]
-
     await update.message.reply_text(
-        "👋 اختر القسم:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        "👋 أهلاً بيك في بوت المنظمة\nاختار اللجنة:",
+        reply_markup=reply_markup
     )
 
-async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    user_id = update.message.from_user.id
-
-    if text == "📸 التصوير":
-        user_type[user_id] = "photo"
-        await update.message.reply_text("📸 اكتب الفورم كامل وارسلو مرة واحدة")
-
-    elif text == "🎨 التصميم":
-        user_type[user_id] = "design"
-        await update.message.reply_text("🎨 اكتب الفورم كامل وارسلو مرة واحدة")
-
-    elif text == "💻 الإلكترونية":
-        user_type[user_id] = "electronic"
-        await update.message.reply_text("💻 اكتب الفورم كامل وارسلو مرة واحدة")
-
-async def receive_form(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
+# ===== التعامل مع الرسائل =====
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
-    if user_id in user_type:
-        await context.bot.send_message(
-            chat_id=ADMIN_CHAT_ID,
-            text=f"📩 طلب جديد:\n\n{text}"
+    # 📸 التصوير
+    if text == "📸 لجنة التصوير والتوثيق":
+        await update.message.reply_text(
+            "📝 استمارة التصوير والتوثيق:\n\n"
+            "🏢 المكتب:\n"
+            "👤 اسم المسؤول:\n"
+            "📱 التواصل:\n"
+            "📅 تاريخ الطلب:\n"
+            "📆 تاريخ التنفيذ:\n"
+            "🎯 تفاصيل التغطية:\n\n"
+            "✍️ اكتب كل البيانات في رسالة واحدة وارسلها هنا"
         )
-        await update.message.reply_text("✅ تم الاستلام")
+
+    # 🎨 التصميم
+    elif text == "🎨 لجنة التصميم":
+        await update.message.reply_text(
+            "📝 استمارة التصميم:\n\n"
+            "🏢 المكتب:\n"
+            "👤 المسؤول:\n"
+            "📱 التواصل:\n"
+            "📅 تاريخ الطلب:\n"
+            "📆 تاريخ التسليم:\n"
+            "🎯 تفاصيل التصميم:\n\n"
+            "✍️ اكتب الطلب كامل وارسلو هنا"
+        )
+
+    # 📢 الإلكترونية
+    elif text == "📢 اللجنة الإلكترونية":
+        await update.message.reply_text(
+            "📝 استمارة البوستات:\n\n"
+            "🔷 اكتب موضوع البوست\n"
+            "🔷 الفكرة الأساسية\n"
+            "🔷 الفئة المستهدفة\n"
+            "🔷 أي تفاصيل إضافية\n\n"
+            "✍️ أرسل الطلب كامل هنا"
+        )
+
+    # أي رسالة ثانية
     else:
-        await update.message.reply_text("اضغط /start")
+        await update.message.reply_text("✔️ تم استلام طلبك، جاري المعالجة...")
 
-app = ApplicationBuilder().token(TOKEN).build()
+# ===== تشغيل البوت =====
+def main():
+    app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_buttons))
-app.add_handler(MessageHandler(filters.TEXT, receive_form))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-print("Bot running...")
-app.run_polling()
+    print("Bot is running...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
